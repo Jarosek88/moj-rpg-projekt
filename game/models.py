@@ -12,9 +12,13 @@ class Postava(models.Model):
         return f"{self.meno} (Level {self.level})"
     
 class Predmet(models.Model):
-    meno = models.CharField(max_length=100)
-    hp = models.IntegerField(default=0)
-    sila_bonus = models.IntegerField(default=0)
+    nazov = models.CharField(max_length=100)
+    bonus_hp = models.IntegerField(default=0)
+    bonus_sila = models.IntegerField(default=0)
+
+    # Prepojenie na postavu
+    majitel = models.ForeignKey(Postava, on_delete=models.CASCADE, related_name="predmety", null=True, blank=True)
 
     def __str__(self):
-        return self.meno
+        return f"{self.nazov} (Majiteľ: {self.majitel.meno})"
+

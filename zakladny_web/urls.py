@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from game.views import zoznam_postav, nova_postava, trenovat_postavu, dobrodruzstvo #Importujeme funkciu
+from game import views
 
 urlpatterns = [
 
@@ -24,5 +25,6 @@ urlpatterns = [
     path('postavy/', zoznam_postav), # Ak poúživateľ pôjde na /postavy uvidí zoznam
     path('postavy/nova/', nova_postava), # Nová cesta pre formulár
     path('postavy/trenovat/<int:postava_id>/', trenovat_postavu , name = 'trenovat'),
-    path('postavy/dobrodruzstvo/<int:postava_id>/', dobrodruzstvo, name='dobrodruzstvo')
+    path('postavy/dobrodruzstvo/<int:postava_id>/', dobrodruzstvo, name='dobrodruzstvo'),
+    path('pouzit-predmet/<int:predmet_id>/', views.pouzit_predmet, name='pouzit_predmet'),
 ]
