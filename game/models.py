@@ -8,6 +8,7 @@ class Postava(models.Model):
     level = models.IntegerField(default=1)
     xp = models.IntegerField(default=0)
     obrana = models.IntegerField(default=0)
+    zlato = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.meno} (Level {self.level})"
@@ -30,4 +31,14 @@ class Predmet(models.Model):
 
     def __str__(self):
         return f"{self.nazov} ({self.get_typ_display()})"
+    
+class Nepriatel(models.Model):
+    nazov = models.CharField(max_length=100)
+    sila = models.IntegerField(default=10)
+    hp = models.IntegerField(default=50)
+    xp_odmena = models.IntegerField(default=20) # Koľko získa hrdina XP keď vyhrá
+    ikona = models.CharField(max_length=50, default="⚔")
+
+    def __str__(self):
+        return f"{self.nazov} (Sila: {self.sila})"
 

@@ -1,5 +1,6 @@
+from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect , render
-from .models import Postava, Predmet
+from .models import Postava, Predmet, Nepriatel
 from .forms import PostavaForm
 import random
 
@@ -52,29 +53,47 @@ def trenovat_postavu(request, postava_id):
 def dobrodruzstvo(request, postava_id):
     postava = get_object_or_404(Postava, id=postava_id)
 
-    # Riziko: Postava stratí HP
-    ubrate_hp = random.randint(15, 40)
-    postava.hp -= ubrate_hp
+    # Vyberieme náhodneho nepriateľas databaázy
+    vsetci_nepriatelia = Nepriatel.objects.all()
+
+    if vsetci_nepriatelia.exists():
+        nepriatel = random.choice(vsetci_nepriatelia)
+
+        # Logika súboja
+        # Nepriateľ udrie svojou silou, ale obrana stlmí úder
+        poskodenie = nepriatel.sila - postava.obrana
+        if poskodenie < 0: poskodenie = 0 #Obrana je silnejšia ako útok
+
+        postava.hp -= poskodenie
+        # Pridáme správu o súboji
+        messages.warning(request, f"Stretol si, {nepriatel.ikona} {nepriatel.nazov}! Utrpel si {poskodenie} poškodenia.")
+
+    # Ak hrdina prežil dostane XP
+    if postava.hp > 0:
+        postava.xp += nepriatel.xp_odmena
+        messages.success(request, f"Vyhral si! Získal si , {nepriatel.xp_odmena} XP.")
+        # Pridáme aj náhodnu silu 
+        postava.sila += random.randint(1, 5) 
 
     if postava.hp <= 0:
+        messages.error(request, f"Bohužiaľ, {nepriatel.nazov} ťa porazil. Letoslav padol v boji...")
         #Hardcore postava zomrela, vymažeme ju
         postava.delete()
         return redirect('/postavy/') # Navrát na zoznam, postava už tam nebude
-    
-    # Odmena ak postava prežije získa silu
-    postava.sila += random.randint(10, 20)
 
-    # šanca na anjdenie predmetu
+    # šanca na najdenie predmetu
     sanca = random.randint(1, 10)
     if sanca <= 3:
         typ_lootu = random.choice(['lektvar', 'zbran', 'brnenie'])
 
         if typ_lootu == 'lektvar':
-            Predmet.objects.create(nazov='Magický lektvár', typ='lektvar', bonus_hp=30, majitel=postava)
+            novy_predmet = Predmet.objects.create(nazov='Magický lektvár', typ='lektvar', bonus_hp=30, majitel=postava)
         elif typ_lootu == 'zbran':
-            Predmet.objects.create(nazov='Ostrý meč', typ='zbran', bonus_sila=random.randint(5, 20), majitel=postava)
+            novy_predmet = Predmet.objects.create(nazov='Ostrý meč', typ='zbran', bonus_sila=random.randint(5, 20), majitel=postava)
         elif typ_lootu == 'brnenie':
-            Predmet.objects.create(nazov='Kožená vesta', typ='brnenie', bonus_obrana=random.randint(3, 12), majitel=postava)
+            novy_predmet = Predmet.objects.create(nazov='Kožená vesta', typ='brnenie', bonus_obrana=random.randint(3, 12), majitel=postava)
+
+        messages.info(request, f"V tráve si našiel: {novy_predmet.nazov}")
 
      # Výpočet levelu za každých 100 jeden level
     novy_level = (postava.sila // 100) + 1
@@ -107,4 +126,34 @@ def pouzit_predmet(request, predmet_id):
         predmet.delete()
 
     postava.save() # Uložíme hrdinovi
+    return redirect('/postavy/')
+
+def predat_predmet(request, predmet_id):
+    predmet = get_object_or_404(Predmet, id= predmet_id)
+    postava = predmet.majitel
+
+    postava.zlato += 50 # Pevna cena za predaj
+    postava.save()
+
+    nazov_predmetu = predmet.nazov
+    predmet.delete()
+
+    messages.success(request, f"Predal si {nazov_predmetu} za 50 zlatých!")
+    return redirect('/postavy/')
+
+def kupit_lektvar(request, postava_id):
+    postava = get_object_or_404(Postava, id = postava_id)
+    cena = 50
+
+    if postava.zlato >= cena:
+        postava.zlato -= cena
+        postava.hp += 30
+        if postava.hp > postava.max_hp:
+            postava.hp = postava.max_hp
+        
+        postava.save()
+        messages.success(request, f"Kúpil si si lektvar! HP doplnené na {postava.hp}.")
+    else:
+        messages.success(request, f"Nemáš dosť zlata na lektvar!") 
+
     return redirect('/postavy/')
