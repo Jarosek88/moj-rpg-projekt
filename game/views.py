@@ -67,11 +67,14 @@ def dobrodruzstvo(request, postava_id):
     # šanca na anjdenie predmetu
     sanca = random.randint(1, 10)
     if sanca <= 3:
-        Predmet.objects.create(
-            nazov = 'Nájdený lektvar',
-            bonus_hp = 30,
-            majitel = postava
-        )
+        typ_lootu = random.choice(['lektvar', 'zbran', 'brnenie'])
+
+        if typ_lootu == 'lektvar':
+            Predmet.objects.create(nazov='Magický lektvár', typ='lektvar', bonus_hp=30, majitel=postava)
+        elif typ_lootu == 'zbran':
+            Predmet.objects.create(nazov='Ostrý meč', typ='zbran', bonus_sila=random.randint(5, 20), majitel=postava)
+        elif typ_lootu == 'brnenie':
+            Predmet.objects.create(nazov='Kožená vesta', typ='brnenie', bonus_obrana=random.randint(3, 12), majitel=postava)
 
      # Výpočet levelu za každých 100 jeden level
     novy_level = (postava.sila // 100) + 1
@@ -89,14 +92,19 @@ def pouzit_predmet(request, predmet_id):
     predmet = get_object_or_404(Predmet, id=predmet_id)
     postava = predmet.majitel
 
-    #Pripočítavame bonusové HP
-    postava.hp += predmet.bonus_hp
+    if predmet.typ == 'lektvar':
+        postava.hp += predmet.bonus_hp
+        if postava.hp > postava.max_hp:
+            postava.hp = postava.max_hp
+        predmet.delete() # Lektvár sa vymaže s batohu
 
-    # Kontrola aby sme nemali viac ako maxHP
-    if postava.hp > postava.max_hp:
-        postava.hp = postava.max_hp
+    elif predmet.typ == 'zbran':
+        postava.sila += predmet.bonus_sila #pridame silu natrvalo
+        predmet.delete() # meč sme nasadili a staa sa súčasťou sily
+
+    elif predmet.typ == 'brnenie':
+        postava.obrana += predmet.bonus_obrana # pridáme obranu natrvalo
+        predmet.delete()
 
     postava.save() # Uložíme hrdinovi
-    predmet.delete() # Lektvár sa vymaže s batohu
-
     return redirect('/postavy/')
