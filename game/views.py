@@ -52,28 +52,60 @@ def trenovat_postavu(request, postava_id):
 
 def dobrodruzstvo(request, postava_id):
     postava = get_object_or_404(Postava, id=postava_id)
+    lokalita = request.GET.get('lokalita', 'les') # Zistíme kam hráč klikol
 
-    # Vyberieme náhodneho nepriateľas databaázy
-    vsetci_nepriatelia = Nepriatel.objects.all()
+    if lokalita == 'odmena':
+        #Skontrolujeme či ma nárok na odmenu
+        if postava.sila >= 30 and not postava.quest_sila_splneny:
+            postava.zlato += 100
+            postava.quest_sila_splneny = True
+            postava.save()
+            messages.success(request, f"🎁 Výborne! Za tvoju silu získavaš odmenu 100 zlata.")
+        elif postava.quest_sila_splneny:
+            messages.info(request, f"Túto odmenu si si už vybral")
+        else:    
+            messages.error(request, f"Ešte nie si dosť silný na túto odmenu!")
+        return redirect('/postavy/')
+    
+    if lokalita == 'odmena_level':
+        if postava.level >= 5 and not postava.quest_level_splneny:
+            postava.zlato += 200
+            postava.quest_level_splneny = True
+            postava.save()
+            messages.success(request, "Paráda! Za 5. level získavaš 200 zlata!")
+        return redirect('/postavy/') # Vždy sa vráť späť, aby ťa nezožral troll!
+    
+    is_dungeon = (lokalita == 'dungeon')
 
-    if vsetci_nepriatelia.exists():
+    if lokalita == 'les':
+        # Vyberieme len slabších sila pod 50
+        vsetci_nepriatelia = Nepriatel.objects.filter(sila__lt=50)
+    elif is_dungeon:
+        vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=50)
+    else:
+        vsetci_nepriatelia = Nepriatel.objects.all()
+
+    # Vyberieme nepriateľa z vyfiltrovaneho zoznamu
+    if  vsetci_nepriatelia.exists():
         nepriatel = random.choice(vsetci_nepriatelia)
+    else:
+        #Ak by bol les prazdny
+        nepriatel = random.choice(Nepriatel.objects.all())
 
-        # Logika súboja
-        # Nepriateľ udrie svojou silou, ale obrana stlmí úder
-        poskodenie = nepriatel.sila - postava.obrana
-        if poskodenie < 0: poskodenie = 0 #Obrana je silnejšia ako útok
+    # Logika súboja
+    # Nepriateľ udrie svojou silou, ale obrana stlmí úder
+    poskodenie = nepriatel.sila - postava.obrana
+    if poskodenie < 0: poskodenie = 0 #Obrana je silnejšia ako útok
 
-        postava.hp -= poskodenie
-        # Pridáme správu o súboji
-        messages.warning(request, f"Stretol si, {nepriatel.ikona} {nepriatel.nazov}! Utrpel si {poskodenie} poškodenia.")
+    postava.hp -= poskodenie
+    # Pridáme správu o súboji
+    messages.warning(request, f"Stretol si, {nepriatel.ikona} {nepriatel.nazov}! Utrpel si {poskodenie} poškodenia.")
 
     # Ak hrdina prežil dostane XP
     if postava.hp > 0:
-        postava.xp += nepriatel.xp_odmena
-        messages.success(request, f"Vyhral si! Získal si , {nepriatel.xp_odmena} XP.")
-        # Pridáme aj náhodnu silu 
-        postava.sila += random.randint(1, 5) 
+        vyhra = True
+    else:
+        vyhra = False
 
     if postava.hp <= 0:
         messages.error(request, f"Bohužiaľ, {nepriatel.nazov} ťa porazil. Letoslav padol v boji...")
@@ -84,25 +116,80 @@ def dobrodruzstvo(request, postava_id):
     # šanca na najdenie predmetu
     sanca = random.randint(1, 10)
     if sanca <= 3:
-        typ_lootu = random.choice(['lektvar', 'zbran', 'brnenie'])
+        # 1. Kontrola limitu batohu (kapacita 5 slotov)
+        if postava.batoh.count() >= 5:
+            messages.warning(request, "Tvoj batoh je plný! Nič nové si neuniesol.")
+        else:
+            typ_lootu = random.choice(['lektvar', 'zbran', 'brnenie'])
+            
+            # 2. Určenie vzácnosti (rarity)
+        
+        vzacnost_sanca = random.randint(1, 100)
+        if lokalita == 'dungeon':
+            # Špeciálne šance pre Dungeon (30% na Legendárny)
+            if vzacnost_sanca <= 30:
+                vzacnost = 'legendary'
+                nasobitel = 4
+                prefix = "Dungeonový Artefakt "
+            else:
+                vzacnost = 'rare'
+                nasobitel = 2
+                prefix = "Vzácny "
+        else:
+            # Pôvodná logika pre Les (10% na Legendárny)
+            if vzacnost_sanca <= 10:
+                vzacnost = 'legendary'
+                nasobitel = 3
+                prefix = "Legendárny "
+            elif vzacnost_sanca <= 30:
+                vzacnost = 'rare'
+                nasobitel = 2
+                prefix = "Vzácny "
+            else:
+                vzacnost = 'common'
+                nasobitel = 1
+                prefix = ""
 
-        if typ_lootu == 'lektvar':
-            novy_predmet = Predmet.objects.create(nazov='Magický lektvár', typ='lektvar', bonus_hp=30, majitel=postava)
-        elif typ_lootu == 'zbran':
-            novy_predmet = Predmet.objects.create(nazov='Ostrý meč', typ='zbran', bonus_sila=random.randint(5, 20), majitel=postava)
-        elif typ_lootu == 'brnenie':
-            novy_predmet = Predmet.objects.create(nazov='Kožená vesta', typ='brnenie', bonus_obrana=random.randint(3, 12), majitel=postava)
+            # 3. Vytvorenie predmetu s priradením vzácnosti a majiteľa
+            if typ_lootu == 'lektvar':
+                novy_predmet = Predmet.objects.create(
+                    majitel=postava, 
+                    nazov=f"{prefix}Magický lektvar", 
+                    typ='lektvar', 
+                    bonus_hp=30 * nasobitel,
+                    rarity=vzacnost
+                )
+            elif typ_lootu == 'zbran':
+                novy_predmet = Predmet.objects.create(
+                    majitel=postava, 
+                    nazov=f"{prefix}Ostrý meč", 
+                    typ='zbran', 
+                    bonus_sila=random.randint(5, 20) * nasobitel,
+                    rarity=vzacnost
+                )
+            elif typ_lootu == 'brnenie':
+                novy_predmet = Predmet.objects.create(
+                    majitel=postava, 
+                    nazov=f"{prefix}Kožená vesta", 
+                    typ='brnenie', 
+                    bonus_obrana=random.randint(3, 12) * nasobitel,
+                    rarity=vzacnost
+                )
+            
+            messages.info(request, f"V tráve si našiel: {novy_predmet.nazov}")
 
-        messages.info(request, f"V tráve si našiel: {novy_predmet.nazov}")
 
-     # Výpočet levelu za každých 100 jeden level
-    novy_level = (postava.sila // 100) + 1
+    if vyhra:
+        postava.xp += nepriatel.xp_odmena
 
-    if novy_level > postava.level:
-        postava.level = novy_level
-        # Bonus pri každom level pridame Hp o 20
-        postava.max_hp += 20
-        postava.hp = postava.max_hp # Vliečime ho trochu    
+        # Logika pre level up
+        if postava.xp >= postava.xp_na_level:
+            postava.level += 1
+            postava.xp -= postava.xp_na_level # Zvyšok XP ostáva do dalšieho levelu
+            postava.xp_na_level = int(postava.xp_na_level * 1.5) # Každý daľší level je tažší
+            postava.max_hp += 20
+            postava.hp = postava.max_hp # Pri level up sa uplne vylieči
+            messages.success(request, f"💥LEVEL UP! Teraz si level {postava.level}!")    
 
     postava.save()
     return redirect('/postavy/')

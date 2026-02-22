@@ -7,8 +7,12 @@ class Postava(models.Model):
     sila = models.IntegerField(default=20)
     level = models.IntegerField(default=1)
     xp = models.IntegerField(default=0)
+    xp_na_level = models.IntegerField(default=100)
     obrana = models.IntegerField(default=0)
     zlato = models.IntegerField(default=0)
+    max_sloty_batohu = models.IntegerField(default=5) # Nový limit
+    quest_sila_splneny = models.BooleanField(default=False)
+    quest_level_splneny = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.meno} (Level {self.level})"
@@ -28,6 +32,13 @@ class Predmet(models.Model):
 
     # Prepojenie na postavu
     majitel = models.ForeignKey(Postava, on_delete=models.CASCADE, related_name="batoh", null=True, blank=True)
+
+    RARITY_CHOICES = [
+        ('common', 'Obyčajný'),
+        ('rare', 'Vzácny'),
+        ('legendary', 'Legendárny'),
+    ]
+    rarity = models.CharField(max_length=20, choices=RARITY_CHOICES, default='common')
 
     def __str__(self):
         return f"{self.nazov} ({self.get_typ_display()})"
