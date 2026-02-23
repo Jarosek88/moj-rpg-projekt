@@ -81,7 +81,14 @@ def dobrodruzstvo(request, postava_id):
         # Vyberieme len slabších sila pod 50
         vsetci_nepriatelia = Nepriatel.objects.filter(sila__lt=50)
     elif is_dungeon:
-        vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=50)
+        vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=50, sila__lt=100)
+    elif lokalita == 'boss':
+        if postava.level < 8:
+            vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=100, sila__lt=151)
+        elif postava.level < 13:
+            vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=151, sila__lte=251)
+        else:
+            vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=251)
     else:
         vsetci_nepriatelia = Nepriatel.objects.all()
 
@@ -115,7 +122,7 @@ def dobrodruzstvo(request, postava_id):
 
     # šanca na najdenie predmetu
     sanca = random.randint(1, 10)
-    if sanca <= 3:
+    if sanca <= 3 or lokalita == 'boss':
         # 1. Kontrola limitu batohu (kapacita 5 slotov)
         if postava.batoh.count() >= 5:
             messages.warning(request, "Tvoj batoh je plný! Nič nové si neuniesol.")
@@ -125,7 +132,12 @@ def dobrodruzstvo(request, postava_id):
             # 2. Určenie vzácnosti (rarity)
         
         vzacnost_sanca = random.randint(1, 100)
-        if lokalita == 'dungeon':
+        if lokalita == 'boss': # Boss ma 100% sancu na artefakt
+            vzacnost = 'legendary'
+            nasobitel = 5
+            prefix = "Epický artefakt"
+
+        elif lokalita == 'dungeon':
             # Špeciálne šance pre Dungeon (30% na Legendárny)
             if vzacnost_sanca <= 30:
                 vzacnost = 'legendary'
@@ -150,33 +162,33 @@ def dobrodruzstvo(request, postava_id):
                 nasobitel = 1
                 prefix = ""
 
-            # 3. Vytvorenie predmetu s priradením vzácnosti a majiteľa
-            if typ_lootu == 'lektvar':
-                novy_predmet = Predmet.objects.create(
-                    majitel=postava, 
-                    nazov=f"{prefix}Magický lektvar", 
-                    typ='lektvar', 
-                    bonus_hp=30 * nasobitel,
-                    rarity=vzacnost
-                )
-            elif typ_lootu == 'zbran':
-                novy_predmet = Predmet.objects.create(
-                    majitel=postava, 
-                    nazov=f"{prefix}Ostrý meč", 
-                    typ='zbran', 
-                    bonus_sila=random.randint(5, 20) * nasobitel,
-                    rarity=vzacnost
-                )
-            elif typ_lootu == 'brnenie':
-                novy_predmet = Predmet.objects.create(
-                    majitel=postava, 
-                    nazov=f"{prefix}Kožená vesta", 
-                    typ='brnenie', 
-                    bonus_obrana=random.randint(3, 12) * nasobitel,
-                    rarity=vzacnost
-                )
-            
-            messages.info(request, f"V tráve si našiel: {novy_predmet.nazov}")
+        # 3. Vytvorenie predmetu s priradením vzácnosti a majiteľa
+        if typ_lootu == 'lektvar':
+            novy_predmet = Predmet.objects.create(
+                majitel=postava, 
+                nazov=f"{prefix} Magický lektvar", 
+                typ='lektvar', 
+                bonus_hp=30 * nasobitel,
+                rarity=vzacnost
+            )
+        elif typ_lootu == 'zbran':
+            novy_predmet = Predmet.objects.create(
+                majitel=postava, 
+                nazov=f"{prefix} Ostrý meč", 
+                typ='zbran', 
+                bonus_sila=random.randint(5, 20) * nasobitel,
+                rarity=vzacnost
+            )
+        elif typ_lootu == 'brnenie':
+            novy_predmet = Predmet.objects.create(
+                majitel=postava, 
+                nazov=f"{prefix} Kožená vesta", 
+                typ='brnenie', 
+                bonus_obrana=random.randint(3, 12) * nasobitel,
+                rarity=vzacnost
+            )
+        
+        messages.info(request, f"V tráve si našiel: {novy_predmet.nazov}")
 
 
     if vyhra:
@@ -243,4 +255,22 @@ def kupit_lektvar(request, postava_id):
     else:
         messages.success(request, f"Nemáš dosť zlata na lektvar!") 
 
+    return redirect('/postavy/')
+
+def nakup(request, postava_id, typ_vylepsenia):
+    postava = get_object_or_404(Postava, id=postava_id)
+    cena = 100 # Jednotna cena za tréning
+
+    if postava.zlato >= cena:
+        postava.zlato -= cena
+        if typ_vylepsenia == 'sila':
+            postava.sila += 10
+            messages.success(request, f"Poriadne si si zamakal! Sila stúpla o 10.")
+        elif typ_vylepsenia == 'obrana':
+            postava.obrana +=10
+            messages.success(request, f"Kováč ti vylepšil brnenie! Obrana stúpla o 10.")
+        postava.save()
+    else:
+        messages.error(request, f"Nemáš dosť zlata!! Chod zberať do lesa.")
+    
     return redirect('/postavy/')

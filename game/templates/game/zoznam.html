@@ -26,6 +26,20 @@
             border-radius: 10px;
             overflow: hidden;
         }
+
+        .zlaty-okraj { 
+        border: 2px solid gold !important; 
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        background-color: #fffdf0 !important;
+        }
+
+        .modry-okraj { 
+            border: 2px solid #007bff !important; 
+            background-color: #f0f7ff !important;
+        }
+
+        .rare-text { color: #007bff; font-weight: bold; }
+        .legendary-text { color: #d4af37; font-weight: bold; }
     </style>
 </head>
 
@@ -118,11 +132,11 @@
                                 {% for predmet in postava.batoh.all %}
                                 <div
                                     class="d-flex justify-content-between align-items-center border rounded p-2 shadow-sm 
-                                        {% if predmet.rarity == 'legendary' %}bg-warning border-danger{% elif predmet.rarity == 'rare' %}bg-info text-white{% else %}bg-white{% endif %}">
+                                        {% if predmet.rarity == 'legendary' %}zlaty-okraj{% elif predmet.rarity == 'rare' %}modry-okraj{% endif %}">
                         
                                     <span class="small">
                                         <strong>{{ predmet.nazov }}</strong>
-                                        <span class="{% if predmet.rarity == 'rare' %}text-white{% else %}text-muted{% endif %} small">
+                                        <span class="{% if predmet.rarity == 'rare' %}modry-okraj{% elif predmet.rarity == 'legendary' %}zlaty-okraj{% endif %}">
                                             {% if predmet.typ == 'lektvar' %}(+{{ predmet.bonus_hp }} HP){% endif %}
                                             {% if predmet.typ == 'zbran' %}(+{{ predmet.bonus_sila }} ⚔️){% endif %}
                                             {% if predmet.typ == 'brnenie' %}(+{{ predmet.bonus_obrana }} 🛡️){% endif %}
@@ -152,14 +166,30 @@
                                 </a>
                                 {% endif %}
 
-                                <a href="{% url 'trenovat' postava.id %}" class="btn btn-success fw-bold">🏋️ Trénovať
-                                    (+sila)</a>
-                                <a href="{% url 'kupit_lektvar' postava.id %}" class="btn btn-warning">🧪 Kúpiť lektvar
-                                    (50zlata)</a>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-6">
+                                        <a href="{% url 'nakup' postava.id 'sila' %}" class="btn btn-success fw-bold w-100">
+                                            🏋️ Trénovať Silu (100zlata)
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a href="{% url 'nakup' postava.id 'obrana' %}" class="btn btn-info text-white fw-bold w-100">
+                                            🛡️ Kováč (100zlata)
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <a href="{% url 'kupit_lektvar' postava.id %}" class="btn btn-warning fw-bold w-100">
+                                        🧪 Kúpiť lektvar (50zlata)
+                                    </a>
+                                </div>
                                 <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=les"
                                     class="btn btn-outline-success">🌲 Les</a>
                                 <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=dungeon"
                                     class="btn btn-danger">🏰 Dungeon</a>
+                                <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=boss"
+                                    class="btn btn-dark w-100 mb-2">☠ Vstúpiť do brlohu Bossa</a>
                         </div>
                     </div>
                 </div>

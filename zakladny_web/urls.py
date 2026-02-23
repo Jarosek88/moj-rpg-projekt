@@ -29,4 +29,5 @@ urlpatterns = [
     path('pouzit-predmet/<int:predmet_id>/', views.pouzit_predmet, name='pouzit_predmet'),
     path('predat/<int:predmet_id>/', views.predat_predmet, name='predat_predmet'),
     path('kupit-lektvar/<int:postava_id>', views.kupit_lektvar, name='kupit_lektvar'),
+    path('nakup/<int:postava_id>/<str:typ_vylepsenia>/', views.nakup, name='nakup'),
 ]
