@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from game.views import zoznam_postav, nova_postava, trenovat_postavu, dobrodruzstvo # Importujeme funkciu
 from game import views
@@ -22,7 +23,11 @@ from game import views
 urlpatterns = [
 
     path('admin/', admin.site.urls),
-    path('postavy/', zoznam_postav), # Ak poúživateľ pôjde na /postavy uvidí zoznam
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('registracia', views.registracia, name='registracia'), 
+    path('', zoznam_postav, name='zoznam_postav'), # Ak poúživateľ pôjde na /postavy uvidí zoznam
+    path('postavy/', zoznam_postav, name='zoznam_postav'),
     path('postavy/nova/', nova_postava), # Nová cesta pre formulár
     path('postavy/trenovat/<int:postava_id>/', trenovat_postavu , name = 'trenovat'),
     path('postavy/dobrodruzstvo/<int:postava_id>/', dobrodruzstvo, name='dobrodruzstvo'),

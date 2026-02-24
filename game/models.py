@@ -1,6 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Postava(models.Model):
+    pouzivatel = models.ForeignKey(User, on_delete=models.CASCADE, related_name="postavy", null=True, blank=True)
     meno = models.CharField(max_length=100)
     hp = models.IntegerField(default=100)
     max_hp = models.IntegerField(default=100)

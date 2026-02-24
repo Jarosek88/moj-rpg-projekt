@@ -1,18 +1,25 @@
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect , render
 from .models import Postava, Predmet, Nepriatel
 from .forms import PostavaForm
 import random
 
+@login_required # Postavy vidí len prihlásený uživateľ
 def zoznam_postav(request):
-    postavy = Postava.objects.all() # Vytiahne úplne všetko z databázy
+    postavy = Postava.objects.filter(pouzivatel=request.user)
     return render(request, 'game/zoznam.html', {'postavy': postavy})
 
+@login_required
 def nova_postava(request):
     if request.method == 'POST':
         form = PostavaForm(request.POST)
         if form.is_valid():
-            form.save()
+            postava = form.save(commit=False) # Ešte neukladaj do DB
+            postava.pouzivatel = request.user # Priradíme aktualné prihlaseného človeka
+            postava.save() # Teraz uložíme aj s majiteľom
             return redirect('/postavy/') # Po úspechu vráti na zoznam
     else:
         form = PostavaForm()
@@ -274,3 +281,14 @@ def nakup(request, postava_id, typ_vylepsenia):
         messages.error(request, f"Nemáš dosť zlata!! Chod zberať do lesa.")
     
     return redirect('/postavy/')
+
+def registracia(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('zoznam_postav') # Hodí to na hlavnú stranu
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/registracia.html', {'form': form})
