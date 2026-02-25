@@ -91,6 +91,10 @@ def dobrodruzstvo(request, postava_id):
         vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=50, sila__lt=100)
     elif lokalita == 'boss':
         if postava.level < 8:
+            messages.error(request, f"{postava.meno} je príliš slabý na súboj s Bossom! Potrebuješ aspoň level 8.")
+            return redirect('/postavy/')
+        
+        if postava.level < 10:
             vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=100, sila__lt=151)
         elif postava.level < 13:
             vsetci_nepriatelia = Nepriatel.objects.filter(sila__gte=151, sila__lte=251)
@@ -122,7 +126,7 @@ def dobrodruzstvo(request, postava_id):
         vyhra = False
 
     if postava.hp <= 0:
-        messages.error(request, f"Bohužiaľ, {nepriatel.nazov} ťa porazil. Letoslav padol v boji...")
+        messages.error(request, f"Bohužiaľ, {nepriatel.nazov} ťa porazil. {postava.meno} padol v boji...")
         #Hardcore postava zomrela, vymažeme ju
         postava.delete()
         return redirect('/postavy/') # Navrát na zoznam, postava už tam nebude
@@ -138,64 +142,64 @@ def dobrodruzstvo(request, postava_id):
             
             # 2. Určenie vzácnosti (rarity)
         
-        vzacnost_sanca = random.randint(1, 100)
-        if lokalita == 'boss': # Boss ma 100% sancu na artefakt
-            vzacnost = 'legendary'
-            nasobitel = 5
-            prefix = "Epický artefakt"
-
-        elif lokalita == 'dungeon':
-            # Špeciálne šance pre Dungeon (30% na Legendárny)
-            if vzacnost_sanca <= 30:
+            vzacnost_sanca = random.randint(1, 100)
+            if lokalita == 'boss': # Boss ma 100% sancu na artefakt
                 vzacnost = 'legendary'
-                nasobitel = 4
-                prefix = "Dungeonový Artefakt "
-            else:
-                vzacnost = 'rare'
-                nasobitel = 2
-                prefix = "Vzácny "
-        else:
-            # Pôvodná logika pre Les (10% na Legendárny)
-            if vzacnost_sanca <= 10:
-                vzacnost = 'legendary'
-                nasobitel = 3
-                prefix = "Legendárny "
-            elif vzacnost_sanca <= 30:
-                vzacnost = 'rare'
-                nasobitel = 2
-                prefix = "Vzácny "
-            else:
-                vzacnost = 'common'
-                nasobitel = 1
-                prefix = ""
+                nasobitel = 5
+                prefix = "Epický artefakt"
 
-        # 3. Vytvorenie predmetu s priradením vzácnosti a majiteľa
-        if typ_lootu == 'lektvar':
-            novy_predmet = Predmet.objects.create(
-                majitel=postava, 
-                nazov=f"{prefix} Magický lektvar", 
-                typ='lektvar', 
-                bonus_hp=30 * nasobitel,
-                rarity=vzacnost
-            )
-        elif typ_lootu == 'zbran':
-            novy_predmet = Predmet.objects.create(
-                majitel=postava, 
-                nazov=f"{prefix} Ostrý meč", 
-                typ='zbran', 
-                bonus_sila=random.randint(5, 20) * nasobitel,
-                rarity=vzacnost
-            )
-        elif typ_lootu == 'brnenie':
-            novy_predmet = Predmet.objects.create(
-                majitel=postava, 
-                nazov=f"{prefix} Kožená vesta", 
-                typ='brnenie', 
-                bonus_obrana=random.randint(3, 12) * nasobitel,
-                rarity=vzacnost
-            )
-        
-        messages.info(request, f"V tráve si našiel: {novy_predmet.nazov}")
+            elif lokalita == 'dungeon':
+                # Špeciálne šance pre Dungeon (30% na Legendárny)
+                if vzacnost_sanca <= 30:
+                    vzacnost = 'legendary'
+                    nasobitel = 4
+                    prefix = "Dungeonový Artefakt "
+                else:
+                    vzacnost = 'rare'
+                    nasobitel = 2
+                    prefix = "Vzácny "
+            else:
+                # Pôvodná logika pre Les (10% na Legendárny)
+                if vzacnost_sanca <= 10:
+                    vzacnost = 'legendary'
+                    nasobitel = 3
+                    prefix = "Legendárny "
+                elif vzacnost_sanca <= 30:
+                    vzacnost = 'rare'
+                    nasobitel = 2
+                    prefix = "Vzácny "
+                else:
+                    vzacnost = 'common'
+                    nasobitel = 1
+                    prefix = ""
+
+            # 3. Vytvorenie predmetu s priradením vzácnosti a majiteľa
+            if typ_lootu == 'lektvar':
+                novy_predmet = Predmet.objects.create(
+                    majitel=postava, 
+                    nazov=f"{prefix} Magický lektvar", 
+                    typ='lektvar', 
+                    bonus_hp=30 * nasobitel,
+                    rarity=vzacnost
+                )
+            elif typ_lootu == 'zbran':
+                novy_predmet = Predmet.objects.create(
+                    majitel=postava, 
+                    nazov=f"{prefix} Ostrý meč", 
+                    typ='zbran', 
+                    bonus_sila=random.randint(5, 20) * nasobitel,
+                    rarity=vzacnost
+                )
+            elif typ_lootu == 'brnenie':
+                novy_predmet = Predmet.objects.create(
+                    majitel=postava, 
+                    nazov=f"{prefix} Kožená vesta", 
+                    typ='brnenie', 
+                    bonus_obrana=random.randint(3, 12) * nasobitel,
+                    rarity=vzacnost
+                )
+            
+            messages.info(request, f"V tráve si našiel: {novy_predmet.nazov}")
 
 
     if vyhra:
