@@ -1,206 +1,149 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>RPG Hrdinovia</title>
+    <title>RPG Sieň slávy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
-            background-color: #f4f7f6;
-            padding-top: 50px;
+            /* Nezabudni si do images pridať mesto.jpg */
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4)),
+            url("{% static 'images/mesto.jpg' %}") no-repeat center center fixed;
+            background-size: cover;
+            color: #f1f1f1;
+            font-family: 'Georgia', serif;
+            padding-top: 30px;
         }
 
-        .card {
-            border: none;
-            border-radius: 15px;
-            transition: 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .progress {
-            background-color: #e9ecef;
+        .hero-card {
+            background: #f4e4bc;
+            /* Pergamenová farba */
+            border: 3px solid #5d4037;
             border-radius: 10px;
+            color: #2b1d0e;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
             overflow: hidden;
         }
 
-        .zlaty-okraj { 
-        border: 2px solid gold !important; 
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        background-color: #fffdf0 !important;
+        .stat-column {
+            padding: 20px;
+            border-right: 2px solid rgba(93, 64, 55, 0.2);
         }
 
-        .modry-okraj { 
-            border: 2px solid #007bff !important; 
-            background-color: #f0f7ff !important;
+        .inventory-column {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.05);
         }
 
-        .rare-text { color: #007bff; font-weight: bold; }
-        .legendary-text { color: #d4af37; font-weight: bold; }
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .inventory-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.1);
+            border: 2px dashed #8d6e63;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: 0.3s;
+        }
+
+        .inventory-slot:hover {
+            background: rgba(0, 0, 0, 0.2);
+            border-style: solid;
+        }
+
+        .progress {
+            background-color: #d7ccc8;
+            height: 12px;
+            border-radius: 5px;
+        }
+
+        .btn-city {
+            background: #5d4037;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-city:hover {
+            background: #795548;
+            color: white;
+        }
     </style>
 </head>
 
 <body>
+
     <div class="container">
         <div class="text-center mb-5">
-            <h1 class="display-4 fw-bold">🛡️ Sieň slávy hrdinov</h1>
-            <a href="/postavy/nova/" class="btn btn-outline-primary mt-3">⚔️ Naverbovať nového hrdinu</a>
+            <h1 class="display-4 fw-bold text-white" style="text-shadow: 2px 2px 10px #000;">🛡️ NÁMESTIE HRDINOV</h1>
+            <a href="{% url 'nova_postava' %}" class="btn btn-warning shadow">⚔️ Naverbovať nového bojovníka</a>
         </div>
 
-        {% if messages %}
-        <div class="mt-3">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="row justify-content-end">
             {% for postava in postavy %}
-            <div class="col">
-                <div class="card h-100 shadow-sm {% if postava.level >= 2 %}border border-warning border-3{% endif %}">
-                    <div class="card-body text-center d-flex flex-column">
-                        <h3 class="card-title fw-bold text-primary">{{ postava.meno }}</h3>
-                        <hr>
+            <div class="col-md-6 col-lg-6">
+                <div class="hero-card">
+                    <div class="row g-0">
+                        <div class="col-7 stat-column">
+                            <h3 class="fw-bold mb-0">{{ postava.meno }}</h3>
+                            <small class="text-muted">Level {{ postava.level }} Dobrodruh</small>
+                            <hr class="my-2" style="border-color: #5d4037;">
 
-                        <div class="text-start mb-3">
-                            <label class="small fw-bold">❤️ Životy: {{ postava.hp }} / {{ postava.max_hp }}</label>
-                            <div class="progress mb-2" style="height: 12px;">
-                                <div class="progress-bar bg-danger" role="progressbar"
+                            <label class="small fw-bold">❤️ HP: {{ postava.hp }}/{{ postava.max_hp }}</label>
+                            <div class="progress mb-2">
+                                <div class="progress-bar bg-danger"
                                     style="width: {% widthratio postava.hp postava.max_hp 100 %}%"></div>
                             </div>
 
-                            <label class="small fw-bold">✨ Level {{ postava.level }}: {{ postava.xp }} / {{postava.xp_na_level }} XP</label>
-                            <div class="progress mb-3" style="height: 10px;">
-                                <div class="progress-bar bg-info progress-bar-striped progress-bar-animated"
-                                    role="progressbar"
-                                    style="width: {% widthratio postava.xp postava.xp_na_level 100 %}%"></div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>⚔️ Sila: <strong>{{ postava.sila }}</strong></span>
+                                <span>🛡️ Obrana: <strong>{{ postava.obrana }}</strong></span>
+                            </div>
+                            <div class="mb-2" style="color: #2b1d0e;"> 💰 Zlato: <strong>{{ postava.zlato }} g</strong>
                             </div>
 
-                            <p class="mb-1"><strong>⚔️ Sila:</strong> <span class="badge bg-warning text-dark">{{postava.sila }}</span></p>
-                            <p class="mb-1"><strong>🛡️ Obrana:</strong> {{ postava.obrana }}</p>
-                            <p class="mb-1"><strong>💰 Zlato:</strong> {{ postava.zlato }}</p>
+                            <div class="d-grid gap-1 mt-3">
+                                <div class="row g-1">
+                                    <div class="col-6"><a href="{% url 'krcma' postava.id %}"
+                                            class="btn btn-city btn-sm w-100">🍻 Krčma</a></div>
+                                    <div class="col-6"><a href="{% url 'kovac' postava.id %}"
+                                            class="btn btn-city btn-sm w-100">⚒️ Kováč</a></div>
+                                </div>
+                                <a href="{% url 'dobrodruzstvo' postava.id %}" class="btn btn-dark btn-sm mt-1">🌲 DO
+                                    DIVOČINY</a>
+                            </div>
                         </div>
 
-                        <div class="mt-2 p-2 bg-light rounded border mb-3 text-start">
-                            <h6 class="fw-bold small mb-1">📜 Aktuálne úlohy:</h6>
-                        
-                            {% if not postava.quest_sila_splneny %}
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="small">Získaj silu 30</span>
-                                {% if postava.sila >= 30 %}
-                                <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=odmena" class="btn btn-sm btn-success">Zobrať 100zlata</a>
-                                {% else %}
-                                <span class="badge bg-secondary">⏳ {{ postava.sila }}/30</span>
-                                {% endif %}
+                        <div class="col-5 inventory-column text-center">
+                            <p class="small fw-bold mb-2 text-uppercase">🎒 Inventár</p>
+                            <div class="inventory-grid">
+                                <div class="inventory-slot" title="Zbraň">🗡️</div>
+                                <div class="inventory-slot" title="Štít">🛡️</div>
+                                <div class="inventory-slot" title="Brnenie">👕</div>
+                                <div class="inventory-slot" title="Prsteň">💍</div>
                             </div>
-                            {% endif %}
-                        
-                            {% if postava.quest_sila_splneny and not postava.quest_level_splneny %}
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="small">Dosiahni Level 5</span>
-                                {% if postava.level >= 5 %}
-                                <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=odmena_level" class="btn btn-sm btn-warning">Zobrať
-                                    200zlata</a>
-                                {% else %}
-                                <span class="badge bg-secondary">⭐ Level {{ postava.level }}/5</span>
-                                {% endif %}
+                            <div class="mt-3">
+                                <small class="text-muted" style="font-size: 0.7rem;">Kapacita: 4 / 10</small>
                             </div>
-                            {% endif %}
-                        
-                            {% if postava.quest_sila_splneny and postava.quest_level_splneny %}
-                            <span class="text-muted small italic">Všetky aktuálne úlohy sú splnené.</span>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mt-2 p-2 bg-light rounded border mb-3 text-start">
-                            <h6 class="fw-bold small mb-1">🎒 Batoh ({{ postava.batoh.count }}/5):</h6>
-                        
-                            <div class="progress mb-2" style="height: 4px;">
-                                <div class="progress-bar {% if postava.batoh.count >= 5 %}bg-danger{% else %}bg-primary{% endif %}"
-                                    role="progressbar" style="width: {% widthratio postava.batoh.count 5 100 %}%">
-                                </div>
-                            </div>
-                        
-                            <div class="d-flex flex-column gap-1">
-                                {% for predmet in postava.batoh.all %}
-                                <div
-                                    class="d-flex justify-content-between align-items-center border rounded p-2 shadow-sm 
-                                        {% if predmet.rarity == 'legendary' %}zlaty-okraj{% elif predmet.rarity == 'rare' %}modry-okraj{% endif %}">
-                        
-                                    <span class="small">
-                                        <strong>{{ predmet.nazov }}</strong>
-                                        <span class="{% if predmet.rarity == 'rare' %}modry-okraj{% elif predmet.rarity == 'legendary' %}zlaty-okraj{% endif %}">
-                                            {% if predmet.typ == 'lektvar' %}(+{{ predmet.bonus_hp }} HP){% endif %}
-                                            {% if predmet.typ == 'zbran' %}(+{{ predmet.bonus_sila }} ⚔️){% endif %}
-                                            {% if predmet.typ == 'brnenie' %}(+{{ predmet.bonus_obrana }} 🛡️){% endif %}
-                                        </span>
-                                    </span>
-                        
-                                    <div class="d-flex gap-1">
-                                        <a href="{% url 'pouzit_predmet' predmet.id %}" class="btn btn-sm btn-success py-0 px-2"
-                                            style="font-size: 0.7rem;">
-                                            {% if predmet.typ == 'lektvar' %}Vypiť{% else %}Nasadiť{% endif %}
-                                        </a>
-                                        <a href="{% url 'predat_predmet' predmet.id %}" class="btn btn-sm btn-outline-dark py-0 px-1">
-                                            💰
-                                        </a>
-                                    </div>
-                                </div>
-                                {% empty %}
-                                <span class="text-muted small italic">Tvoj batoh je prázdny...</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <div class="mt-auto d-grid gap-2">
-                            {% if postava.sila >= 30 and postava.zlato < 100 %} <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=odmena"
-                                class="btn btn-primary fw-bold">
-                                🎁 Vyzdvihnúť odmenu (100zlata)
-                                </a>
-                                {% endif %}
-
-                                <div class="row g-2 mb-2">
-                                    <div class="col-6">
-                                        <a href="{% url 'nakup' postava.id 'sila' %}" class="btn btn-success fw-bold w-100">
-                                            🏋️ Trénovať Silu (100zlata)
-                                        </a>
-                                    </div>
-                                    <div class="col-6">
-                                        <a href="{% url 'nakup' postava.id 'obrana' %}" class="btn btn-info text-white fw-bold w-100">
-                                            🛡️ Kováč (100zlata)
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <a href="{% url 'kupit_lektvar' postava.id %}" class="btn btn-warning fw-bold w-100">
-                                        🧪 Kúpiť lektvar (50zlata)
-                                    </a>
-                                </div>
-                                <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=les"
-                                    class="btn btn-outline-success">🌲 Les</a>
-                                <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=dungeon"
-                                    class="btn btn-danger">🏰 Dungeon</a>
-                                <a href="{% url 'dobrodruzstvo' postava.id %}?lokalita=boss"
-                                    class="btn btn-dark w-100 mb-2">☠ Vstúpiť do brlohu Bossa</a>
                         </div>
                     </div>
                 </div>
             </div>
-            {% empty %}
-            <div class="col-12 text-center">
-                <div class="alert alert-info">Zatiaľ tu nie sú žiadni hrdinovia.</div>
-            </div>
             {% endfor %}
         </div>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

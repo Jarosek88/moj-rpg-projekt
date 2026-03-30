@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Kováčska dielňa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+       body {
+        /* Toto nastaví obrázok na celú plochu a zafixuje ho */
+        background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), 
+                    url("{% static 'images/kovac_final.jpg' %}") no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Georgia', serif;
+    }
+
+    .forge-panel {
+        /* Panel urobíme tmavší a polopriehľadný, aby cez neho presvitala dielňa */
+        background: rgba(20, 20, 20, 0.3); 
+        padding: 40px;
+        border-radius: 15px;
+        border: 2px solid #e67e22;
+        width: 500px;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+        color: white;
+    }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 5px solid #e67e22;
+            color: white;
+        }
+
+        .stat-box small {
+             color: #bdc3c7 !important; /* Pekná svetlo-sivá */
+        }
+
+        .btn-upgrade {
+            background: #d35400;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-upgrade:hover {
+            background: #e67e22;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="forge-panel">
+        <h1 style="color: #e67e22;">⚒️ Kováč Železná Päsť</h1>
+        <p class="fst-italic">"Čo potrebuješ, hrdina? Ostrejší meč alebo pevnejší štít?"</p>
+        <hr>
+
+        <div class="mb-4">
+            <h4>{{ postava.meno }}</h4>
+            <span class="badge bg-warning text-dark">💰 Tvoje zlato: {{ postava.zlato }} g</span>
+        </div>
+
+        <div class="stat-box d-flex justify-content-between align-items-center">
+            <div class="text-start">
+                <strong>Sila: {{ postava.sila }}</strong><br>
+                <small class="text-muted">Zvýši tvoj úder v boji</small>
+            </div>
+            <a href="{% url 'nakup_vylepsenia' postava.id 'sila' %}" class="btn btn-upgrade">Vylepšiť (100g)</a>
+        </div>
+
+        <div class="stat-box d-flex justify-content-between align-items-center">
+            <div class="text-start">
+                <strong>Obrana: {{ postava.obrana }}</strong><br>
+                <small class="text-muted">Zníži poškodenie od nepriateľov</small>
+            </div>
+            <a href="{% url 'nakup_vylepsenia' postava.id 'obrana' %}" class="btn btn-upgrade">Vylepšiť (100g)</a>
+        </div>
+
+        <a href="{% url 'zoznam_postav' %}" class="text-white mt-3 d-inline-block text-decoration-none">
+            ⬅ Späť do mesta
+        </a>
+    </div>
+
+</body>
+
+</html>

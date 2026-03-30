@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Bojová Zóna</title>
+    <style>
+        body {
+            /* Dynamické pozadie podľa toho, kde sa hráč nachádza */
+            background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4)),
+            url("{% static 'images/' %}{{ zona_name }}.jpg") no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .panel {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            border-radius: 20px;
+
+            border: 2px solid {
+                % if zona_name=='boss' %
+            }
+
+            #ff4d4d {
+                % else %
+            }
+
+            #e74c3c {
+                % endif %
+            }
+
+            ;
+            text-align: center;
+            width: 450px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-boj {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #e74c3c;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: 0.3s;
+        }
+
+        .btn-boj:hover {
+            background: #c0392b;
+            transform: scale(1.02);
+        }
+
+        .stats {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="panel">
+        {% if nepriatel %}
+        <h1 style="color: #e74c3c;">⚔️ {{ nepriatel.nazov }}</h1>
+        <p style="font-size: 1.2em;">Sila nepriateľa: <strong>{{ nepriatel.sila }}</strong></p>
+        <hr style="border: 0.5px solid #444;">
+
+        <p>Tvoje HP: <strong style="color: #2ecc71;">{{ postava.hp }} / {{ postava.max_hp }}</strong></p>
+
+        <a href="{% url 'bojovat' postava.id nepriatel.id %}" class="btn-boj">ZAÚTOČIŤ!</a>
+        <a href="{% url 'dobrodruzstvo' postava.id %}" style="color: #888; text-decoration: none; font-size: 0.9em;">🏃
+            Pokúsiť sa o útek</a>
+
+        {% else %}
+        <h1>🌲 Kam sa vydáš?</h1>
+        <p>Vyber si svoju cestu, hrdina <strong>{{ postava.meno }}</strong>.</p>
+
+        <a href="?zona=les" class="btn-boj" style="background: #27ae60;">🌿 Vstúpiť do Lesa (Ľahké)</a>
+        <a href="?zona=dungeon" class="btn-boj" style="background: #f39c12;">🧱 Temný Dungeon (Stredné)</a>
+        <a href="?zona=boss" class="btn-boj" style="background: #c0392b;">🔥 Vyzvať Bossa (Ťažké)</a>
+
+        <hr style="border: 0.5px solid #444; margin: 20px 0;">
+        <a href="{% url 'zoznam_postav' %}" style="color: white; text-decoration: none;">← Späť do mesta</a>
+        {% endif %}
+
+        <div class="stats">
+            Level: {{ postava.level }} | Sila: {{ postava.sila }} | Obrana: {{ postava.obrana }}
+        </div>
+    </div>
+
+</body>
+
+</html>
