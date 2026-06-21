@@ -6,10 +6,9 @@
     <title>Bojová Zóna</title>
     <style>
         body {
-            /* Dynamické pozadie podľa toho, kde sa hráč nachádza */
             background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4)),
             url("{% static 'images/' %}{{ zona_name }}.jpg") no-repeat center center fixed;
-            background-size: cover;
+            background-size: 100% 100%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,7 +23,8 @@
             padding: 40px;
             border-radius: 20px;
 
-            border: 2px solid {
+            /* OPRAVENÝ DYNAMICKÝ BORDER */
+            border: 3px solid {
                 % if zona_name=='boss' %
             }
 
@@ -61,6 +61,17 @@
             transform: scale(1.02);
         }
 
+        /* ŠTÝL PRE VÝPIS SÚBOJA */
+        .boj-log {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
         .stats {
             font-size: 0.9em;
             color: #ccc;
@@ -74,17 +85,38 @@
     <div class="panel">
         {% if nepriatel %}
         <h1 style="color: #e74c3c;">⚔️ {{ nepriatel.nazov }}</h1>
+
+        {# VÝPIS SPRÁV O SÚBOJI #}
+        {% if messages %}
+        <div class="boj-log">
+            {% for message in messages %}
+            <div>{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <p style="font-size: 1.2em;">Sila nepriateľa: <strong>{{ nepriatel.sila }}</strong></p>
         <hr style="border: 0.5px solid #444;">
 
         <p>Tvoje HP: <strong style="color: #2ecc71;">{{ postava.hp }} / {{ postava.max_hp }}</strong></p>
 
-        <a href="{% url 'bojovat' postava.id nepriatel.id %}" class="btn-boj">ZAÚTOČIŤ!</a>
+        {# PRIDANÁ ZÓNA DO ODKAZU, ABY SÚBOJ POKRAČOVAL V TEJ ISTEJ ZÓNE #}
+        <a href="{% url 'bojovat' postava.id nepriatel.id %}?zona={{ zona_name }}" class="btn-boj">ZAÚTOČIŤ!</a>
         <a href="{% url 'dobrodruzstvo' postava.id %}" style="color: #888; text-decoration: none; font-size: 0.9em;">🏃
             Pokúsiť sa o útek</a>
 
         {% else %}
         <h1>🌲 Kam sa vydáš?</h1>
+
+        {# VÝPIS SPRÁV NA RÁZCESTÍ (napr. keď nemáš dostatočný level) #}
+        {% if messages %}
+        <div class="boj-log">
+            {% for message in messages %}
+            <div>{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <p>Vyber si svoju cestu, hrdina <strong>{{ postava.meno }}</strong>.</p>
 
         <a href="?zona=les" class="btn-boj" style="background: #27ae60;">🌿 Vstúpiť do Lesa (Ľahké)</a>

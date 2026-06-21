@@ -22,38 +22,44 @@
         .btn-krcma {
             background-color: #f1c40f;
             color: black;
-            padding: 12px 24px;
+            padding: 10px 20px;
             text-decoration: none;
             border-radius: 8px;
             font-weight: bold;
             border: 2px solid #b8860b;
             display: inline-block;
-            margin: 10px;
-            transition: 0.3s;
+            margin: 5px;
+            transition: 0.2s;
             cursor: pointer;
         }
 
         .btn-krcma:hover {
             background-color: #d4ac0d;
-            transform: scale(1.1);
-        }
-
-        .btn-disabled {
-            background-color: #7f8c8d;
-            border-color: #95a5a6;
-            cursor: not-allowed;
-            opacity: 0.6;
+            transform: scale(1.05);
         }
 
         .container {
             background: rgba(0, 0, 0, 0.85);
             border: 2px solid #f1c40f;
-            padding: 30px;
+            padding: 25px;
             border-radius: 15px;
             color: white;
             text-align: center;
-            min-width: 350px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 420px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+
+        .alert-krcma {
+            background: rgba(0, 0, 0, 0.75);
+            color: #f1c40f;
+            font-weight: bold;
+            padding: 6px 20px;
+            border-radius: 30px;
+            margin: 10px auto;
+            border: 1px solid #f1c40f;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </head>
@@ -61,56 +67,62 @@
 <body>
 
     <div class="container">
-        <h1>🍻 Krčma u Veselého Trolla</h1>
-        <p style="font-style: italic; color: #f1c40f; margin-bottom: 20px;">
+        <h1 style="margin: 0 0 5px 0; font-size: 1.8em;">🍻 Krčma u Veselého Trolla</h1>
+        <p style="font-style: italic; color: #f1c40f; margin: 0 0 15px 0;">
             "{{ hlaska|default:'Posaď sa, cudzinec!' }}"
         </p>
-        <p>Hrdina: <strong>{{ postava.meno }}</strong></p>
-        <p>Životy: {{ postava.hp }} ❤️ | Zlato: {{ postava.zlato }} 💰</p>
-    <div class="d-flex justify-content-center gap-3 mt-4">
-        <a href="{% url 'oddychnut' postava.id 'pivo' %}" class="btn fw-bold shadow"
-            style="background-color: #ffc107; color: #000; border-radius: 10px; padding: 15px 25px; border: none; text-decoration: none; min-width: 140px;">
-            🍺 Pivo (10zlata)
-        </a>
-    
-        <a href="{% url 'oddychnut' postava.id 'jedlo' %}" class="btn fw-bold shadow"
-            style="background-color: #ffc107; color: #000; border-radius: 10px; padding: 15px 25px; border: none; text-decoration: none; min-width: 140px;">
-            🍗 Jedlo (30zlata)
-        </a>
-    <div class="mt-4 text-center">
-        <p class="text-white fw-bold mb-2">Koľko vsadíš?</p>
-    
-        <form action="{% url 'hrat_kocky' postava.id %}" method="POST"
-            class="d-flex justify-content-center align-items-center gap-2">
-            {% csrf_token %}
-            <input type="number" name="stavka" value="10" min="1"
-                style="width: 80px; height: 45px; background: #333; color: white; border: 2px solid #ffc107; border-radius: 10px; text-align: center; font-weight: bold;">
-    
-            <button type="submit" class="btn fw-bold shadow"
-                style="background-color: #ffc107; color: #000; border-radius: 10px; height: 45px; border: none; padding: 0 20px;">
-                🎲 Hrať o všetko!
-            </button>
-        </form>
-    
-        <div class="mt-3" style="min-height: 24px;">
-            {% if request.session.posledny_hod %}
-            <p class="fw-bold" style="color: #ffc107; text-shadow: 1px 1px 2px #000;">
-                {{ request.session.posledny_hod }}
-            </p>
-            {% else %}
-            <p class="small text-muted">Vsaď zlato a hoď kockou proti krčmárovi!</p>
-            {% endif %}
-        </div>
-    </div>
+        <p style="margin: 3px 0;">Hrdina: <strong>{{ postava.meno }}</strong></p>
+        <p style="margin: 3px 0;">Životy: {{ postava.hp }} ❤️ | Zlato: {{ postava.zlato }} 💰</p>
 
-        <div style="margin-top: 30px;">
-            <a href="{% url 'zoznam_postav' %}"
-                style="color: #f1c40f; text-decoration: none; font-size: 1em; font-weight: bold;">
+        {% if messages %}
+            <div style="text-align: center; width: 100%;">
+                {% for message in messages %}
+                    <div class="alert-krcma">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+            <a href="{% url 'oddychnut' postava.id 'pivo' %}" class="btn-krcma" style="padding: 8px 16px; font-size: 0.9em;">🍺 Pivo (10z)</a>
+            <a href="{% url 'oddychnut' postava.id 'jedlo' %}" class="btn-krcma" style="padding: 8px 16px; font-size: 0.9em;">🍗 Jedlo (30z)</a>
+        </div>
+
+        <div style="margin-top: 20px; border-bottom: 1px solid rgba(241, 196, 15, 0.2); padding-bottom: 15px;">
+            <p style="color: white; font-weight: bold; margin: 0 0 8px 0; font-size: 0.95em;">Koľko vsadíš na kocky?</p>
+            <form action="{% url 'hrat_kocky' postava.id %}" method="POST" style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+                {% csrf_token %}
+                <input type="number" name="stavka" value="10" min="1" max="{{ postava.zlato }}"
+                    style="width: 75px; height: 38px; background: #333; color: white; border: 2px solid #ffc107; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1em;">
+                <button type="submit" class="btn-krcma" style="margin: 0; height: 38px; padding: 0 15px; border-radius: 8px; font-size: 0.9em;">
+                    🎲 Hrať kocky!
+                </button>
+            </form>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <p style="color: white; font-weight: bold; margin: 0 0 5px 0; font-size: 0.95em;">
+                🃏 Karta na stole: <span style="color: #ffc107; font-size: 1.2em;">{{ request.session.aktualna_karta|default:"5" }}</span>
+            </p>
+
+            <form action="{% url 'hra_karty' postava.id %}" method="POST" style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 5px;">
+                {% csrf_token %}
+
+                <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 5px;">
+                    <input type="number" name="stavka" value="10" min="1" max="{{ postava.zlato }}"
+                        style="width: 75px; height: 38px; background: #333; color: white; border: 2px solid #ffc107; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1em;">
+
+                    <button type="submit" name="tip" value="vyssia" class="btn-krcma" style="margin: 0; height: 38px; padding: 0 12px; border-radius: 8px; font-size: 0.85em;">⬆️ Vyššia</button>
+                    <button type="submit" name="tip" value="nizsia" class="btn-krcma" style="margin: 0; height: 38px; padding: 0 12px; border-radius: 8px; font-size: 0.85em;">⬇️ Nižšia</button>
+                </div>
+            </form>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'zoznam_postav' %}" style="color: #f1c40f; text-decoration: none; font-size: 0.95em; font-weight: bold;">
                 ⬅ Odísť z krčmy
             </a>
         </div>
     </div>
 
 </body>
-
 </html>

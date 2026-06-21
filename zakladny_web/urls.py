@@ -13,10 +13,10 @@ urlpatterns = [
     path('', views.zoznam_postav, name='zoznam_postav'),
     path('postavy/', views.zoznam_postav, name='zoznam_postav'),
     path('postavy/nova/', views.nova_postava, name='nova_postava'),
+    path('postava/<int:postava_id>/batoh/', views.batoh, name='batoh'),
     
     # ZÁKLADNÉ FUNKCIE (Krčma a Odpočinok)
     path('postava/krcma/<int:postava_id>/', views.krcma, name='krcma'),
-    path('postava/<int:postava_id>/odpocinok/', views.odpocinok, name='odpocinok'),
     
     # BOJ A KOVÁČ (To nové, čo sme pridali)
     path('postava/<int:postava_id>/boj/', views.dobrodruzstvo, name='dobrodruzstvo'),
@@ -25,4 +25,8 @@ urlpatterns = [
     path('postava/<int:postava_id>/vylepsit/<str:typ>/', views.nakup_vylepsenia, name='nakup_vylepsenia'),
     path('postava/<int:postava_id>/oddychnut/<str:typ_odpocinok>/', views.oddychnut, name='oddychnut'),
     path('postava/<int:postava_id>/kocky/', views.hrat_kocky, name='hrat_kocky'),
+    path('postava/krcma/<int:postava_id>/karty/', views.hra_karty, name='hra_karty'),
+    path('obliect/<int:predmet_id>/', views.obliect_predmet, name='obliect_predmet'),
+    path('postava/<int:postava_id>/kovac/rozsirit/', views.rozsirit_batoh, name='rozsirit_batoh'),
+    path('postava/<int:postava_id>/predat-vsetko/', views.predat_vsetko, name='predat_vsetko'),
 ]
