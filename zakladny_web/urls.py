@@ -1,38 +1,32 @@
-"""
-URL configuration for zakladny_web project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
-from game.views import zoznam_postav, nova_postava, trenovat_postavu, dobrodruzstvo # Importujeme funkciu
 from game import views
 
 urlpatterns = [
-
     path('admin/', admin.site.urls),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('registracia', views.registracia, name='registracia'), 
-    path('', zoznam_postav, name='zoznam_postav'), # Ak poúživateľ pôjde na /postavy uvidí zoznam
-    path('postavy/', zoznam_postav, name='zoznam_postav'),
-    path('postavy/nova/', nova_postava), # Nová cesta pre formulár
-    path('postavy/trenovat/<int:postava_id>/', trenovat_postavu , name = 'trenovat'),
-    path('postavy/dobrodruzstvo/<int:postava_id>/', dobrodruzstvo, name='dobrodruzstvo'),
-    path('pouzit-predmet/<int:predmet_id>/', views.pouzit_predmet, name='pouzit_predmet'),
-    path('predat/<int:predmet_id>/', views.predat_predmet, name='predat_predmet'),
-    path('kupit-lektvar/<int:postava_id>', views.kupit_lektvar, name='kupit_lektvar'),
-    path('nakup/<int:postava_id>/<str:typ_vylepsenia>/', views.nakup, name='nakup'),
+    path('registracia/', views.registracia, name='registracia'),
+    
+    # HLAVNÉ STRÁNKY
+    path('', views.zoznam_postav, name='zoznam_postav'),
+    path('postavy/', views.zoznam_postav, name='zoznam_postav'),
+    path('postavy/nova/', views.nova_postava, name='nova_postava'),
+    path('postava/<int:postava_id>/batoh/', views.batoh, name='batoh'),
+    
+    # ZÁKLADNÉ FUNKCIE (Krčma a Odpočinok)
+    path('postava/krcma/<int:postava_id>/', views.krcma, name='krcma'),
+    
+    # BOJ A KOVÁČ (To nové, čo sme pridali)
+    path('postava/<int:postava_id>/boj/', views.dobrodruzstvo, name='dobrodruzstvo'),
+    path('postava/<int:postava_id>/utok/<int:nepriatel_id>/', views.bojovat, name='bojovat'),
+    path('postava/<int:postava_id>/kovac/', views.kovac, name='kovac'),
+    path('postava/<int:postava_id>/vylepsit/<str:typ>/', views.nakup_vylepsenia, name='nakup_vylepsenia'),
+    path('postava/<int:postava_id>/oddychnut/<str:typ_odpocinok>/', views.oddychnut, name='oddychnut'),
+    path('postava/<int:postava_id>/kocky/', views.hrat_kocky, name='hrat_kocky'),
+    path('postava/krcma/<int:postava_id>/karty/', views.hra_karty, name='hra_karty'),
+    path('obliect/<int:predmet_id>/', views.obliect_predmet, name='obliect_predmet'),
+    path('postava/<int:postava_id>/kovac/rozsirit/', views.rozsirit_batoh, name='rozsirit_batoh'),
+    path('postava/<int:postava_id>/predat-vsetko/', views.predat_vsetko, name='predat_vsetko'),
 ]

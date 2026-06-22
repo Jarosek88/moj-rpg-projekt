@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventár - {{ postava.meno }}</title>
+    <style>
+        /* Pozadie a celkové rozloženie */
+        body {
+            background-image: url('{% static "images/Batoh.png" %}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Hlavná karta batohu */
+        .container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #ff9800;
+            width: 600px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        h2 { text-align: center; color: #ff9800; }
+
+        .stats { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
+
+        .item-list { list-style: none; padding: 0; }
+
+        .item-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #444;
+        }
+
+        /* Tlačidlá */
+        .btn-action {
+            background-color: rgba(211, 47, 47, 0.7);
+            color: white;
+            padding: 8px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .btn-predat {
+            background-color: rgba(255, 152, 0, 0.7);
+            color: black;
+            padding: 12px;
+            display: block;
+            width: 100%;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+
+        .btn-spat {
+            color: #ffeb3b;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Batoh hrdinu {{ postava.meno }}</h2>
+
+    <div class="stats">
+        Zlato: <strong>{{ postava.zlato }}</strong> |
+        Sila: {{ postava.sila }} |
+        Obrana: {{ postava.obrana }}
+    </div>
+
+    <ul class="item-list">
+        {% for predmet in predmety %}
+        <li class="item-card">
+            <div>
+                <strong>{{ predmet.nazov }}</strong><br>
+                <small>⚔️ Sila: {{ predmet.bonus_sila }} | 🛡️ Obrana: {{ predmet.bonus_obrana }}</small>
+            </div>
+
+            {% if predmet.nasadene %}
+                <span style="color: #4caf50; font-weight: bold; margin-right: 10px;">Nasadené</span>
+                <a href="{% url 'obliect_predmet' predmet.id %}" class="btn-action">Vyzliecť</a>
+            {% else %}
+                <a href="{% url 'obliect_predmet' predmet.id %}" class="btn-action" style="background-color: #2e7d32;">Nasadiť</a>
+            {% endif %}
+        </li>
+        {% empty %}
+            <p style="text-align: center; color: #aaa;">Batoh je prázdny.</p>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'predat_vsetko' postava.id %}" class="btn-predat">💰 Predať všetok odpad z batohu</a>
+    <a href="/" class="btn-spat">← Späť na Námestie</a>
+</div>
+
+</body>
+</html>
